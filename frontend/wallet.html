@@ -13,21 +13,60 @@
             --text-sub: #718096;
             --border: #edf2f7;
             --accent: #2d3748;
-            /* Removed --success variable (the green color) */
+            /* Safe Area Variables handle hardware notches and home bars */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
-
+    
         * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
             font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif; 
+            /* Remove the gray tap highlight flash on mobile */
             -webkit-tap-highlight-color: transparent; 
+            /* Prevent long-press "Save Image" or "Copy" menus on icons/images */
+            -webkit-touch-callout: none;
         }
-
-        body { background-color: var(--bg); color: var(--text-main); line-height: 1.4; overflow-x: hidden; }
-
-        /* --- Professional Top Navbar --- */
+    
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            line-height: 1.4; 
+            /* Prevent horizontal wobble and "elastic" pull-to-refresh bounce */
+            overflow-x: hidden; 
+            overscroll-behavior-y: none;
+            /* Native App Feel: Disable text and element selection */
+            -webkit-user-select: none;
+            user-select: none;
+            /* Hardware acceleration for smoother scrolling */
+            -webkit-overflow-scrolling: touch;
+            min-height: 100vh;
+        }
+    
+        /* Re-enable selection for inputs so users can type their credit amounts */
+        input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+    
+        /* Hide scrollbars globally while maintaining scrolling functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    
+        /* Prevent images/logos from being dragged or long-pressed like web-content */
+        img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+    
+        /* --- Professional Top Navbar (Notch-Aware) --- */
         .navbar {
             background: #ffffff;
-            padding: 0 16px;
+            /* Top padding auto-adjusts for the phone's status bar/notch */
+            padding: var(--safe-top) 16px 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -35,9 +74,10 @@
             top: 0;
             z-index: 1000;
             border-bottom: 1px solid var(--border);
-            height: 52px;
+            /* Height grows based on the safe area for a seamless look */
+            height: calc(52px + var(--safe-top));
         }
-
+    
         .nav-left { display: flex; align-items: center; gap: 12px; }
         .back-link {
             text-decoration: none;
@@ -48,19 +88,23 @@
             align-items: center;
             cursor: pointer;
         }
-
+    
         .brand-name { font-size: 14px; font-weight: 600; color: var(--primary); letter-spacing: -0.2px; }
-
+    
         .points-pill {
             background: var(--primary);
             padding: 4px 10px;
             border-radius: 4px;
         }
         .points-val { color: #ffffff; font-weight: 700; font-size: 10px; }
-
+    
         /* --- Layout --- */
-        .container { padding: 16px; }
-
+        .container { 
+            padding: 16px; 
+            /* Padding-bottom accounts for modern phones with bottom home-bars */
+            padding-bottom: calc(32px + var(--safe-bottom));
+        }
+    
         .balance-card {
             background: var(--primary);
             color: white;
@@ -68,7 +112,7 @@
             border-radius: 6px;
             margin-bottom: 20px;
         }
-
+    
         .balance-card h4 { 
             font-size: 9px; 
             opacity: 0.7; 
@@ -76,9 +120,9 @@
             letter-spacing: 1px; 
             margin-bottom: 4px;
         }
-
+    
         .balance-card .amt { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
-
+    
         .bonus-banner {
             background: rgba(255,255,255,0.1);
             padding: 8px 12px;
@@ -86,7 +130,7 @@
             font-size: 10px;
             border-left: 2px solid #ffffff;
         }
-
+    
         /* --- Grid Section & Logos --- */
         .section-title {
             font-size: 10px;
@@ -96,14 +140,14 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
+    
         .voucher-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
-
+    
         .voucher-card {
             background: #ffffff;
             border: 1px solid var(--border);
@@ -115,15 +159,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            /* Prevent gray tap flash inside cards */
+            -webkit-tap-highlight-color: transparent;
         }
-
+    
         .voucher-card.selected {
             border-color: var(--primary);
             background: var(--primary-light);
             box-shadow: 0 2px 8px rgba(0,51,102,0.05);
         }
-
-        /* NEW: Logo styles */
+    
         .logo-container {
             height: 28px;
             width: 100%;
@@ -132,14 +177,13 @@
             justify-content: center;
             margin-bottom: 8px;
         }
-
+    
         .brand-logo-img {
             max-height: 100%;
             max-width: 90%;
             object-fit: contain;
         }
         
-        /* UPDATED: Neutral brand offer styling (removed green) */
         .brand-offer {
             font-size: 9px;
             color: var(--text-sub);
@@ -150,7 +194,7 @@
              color: var(--primary);
              font-weight: 700;
         }
-
+    
         /* --- Cash & Input --- */
         .cash-option {
             width: 100%;
@@ -167,7 +211,7 @@
         .cash-option.selected { border-color: var(--primary); background: var(--primary-light); }
         .cash-info b { font-size: 12px; display: block; }
         .cash-info span { font-size: 9px; color: var(--text-sub); }
-
+    
         .input-box {
             background: #ffffff;
             border: 1px solid var(--border);
@@ -175,7 +219,7 @@
             border-radius: 6px;
             margin-bottom: 20px;
         }
-
+    
         .input-label {
             font-size: 9px;
             font-weight: 700;
@@ -183,7 +227,7 @@
             margin-bottom: 8px;
             display: block;
         }
-
+    
         .input-field {
             width: 100%;
             border: none;
@@ -194,8 +238,10 @@
             outline: none;
             color: var(--primary);
             background: transparent;
+            /* Standardizing iOS appearance */
+            border-radius: 0;
         }
-
+    
         .conversion-preview {
             font-size: 11px;
             color: var(--primary);
@@ -203,7 +249,7 @@
             margin-top: 10px;
             display: block;
         }
-
+    
         /* --- Action Buttons --- */
         .btn-main {
             width: 100%;
@@ -218,10 +264,12 @@
             letter-spacing: 0.5px;
             cursor: pointer;
             transition: 0.3s;
+            /* Immediate visual feedback on mobile tap */
         }
-
-        .btn-main:disabled { background: #cbd5e0; }
-
+        .btn-main:active { opacity: 0.8; }
+    
+        .btn-main:disabled { background: #cbd5e0; cursor: not-allowed; }
+    
         /* --- History --- */
         .history-container { margin-top: 32px; }
         .history-row {
@@ -233,11 +281,12 @@
         .history-info b { font-size: 11px; display: block; }
         .history-info span { font-size: 9px; color: var(--text-sub); }
         .history-pts { font-size: 11px; font-weight: 700; }
-
-        /* --- Toast Notification --- */
+    
+        /* --- Toast Notification (Bottom Safe-Area Aware) --- */
         .toast {
             position: fixed;
-            bottom: 30px;
+            /* Sits above the home indicator bar */
+            bottom: calc(30px + var(--safe-bottom));
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background: var(--primary);
@@ -248,6 +297,7 @@
             opacity: 0;
             transition: 0.4s;
             z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>

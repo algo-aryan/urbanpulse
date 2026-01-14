@@ -9,39 +9,104 @@
             --gov-blue: #003366;
             --energy-orange: #f57c00;
             --bg-gray: #f8fafc;
-            --safe-top: env(safe-area-inset-top);
+            /* Handle phone notches and home-bar safe areas */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
             --nav-height: calc(60px + var(--safe-top));
             --border-color: #d1d5db;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body, html { height: 100%; background: var(--bg-gray); overflow-x: hidden; touch-action: manipulation; }
-
+    
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            /* Remove the gray tap highlight flash on mobile */
+            -webkit-tap-highlight-color: transparent; 
+            /* Prevent long-press "Save Image" or "Copy" menus */
+            -webkit-touch-callout: none;
+        }
+    
+        body, html { 
+            height: 100%; 
+            background: var(--bg-gray); 
+            /* Prevent horizontal wobble and the "elastic" scroll bounce */
+            overflow-x: hidden; 
+            overscroll-behavior-y: none;
+            /* Native App Feel: Disable text and element selection */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+    
+        /* Prevent images from being dragged or interacted with like a web-image */
+        img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+    
+        /* Hide scrollbars while maintaining scrolling functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    
         .official-nav {
-            position: fixed; top: 0; width: 100%; height: var(--nav-height);
-            background: #fff; border-bottom: 4px solid var(--gov-blue);
-            z-index: 2000; display: flex; align-items: flex-end; 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            /* Height auto-adjusts based on the phone's notch/status bar */
+            height: var(--nav-height);
+            background: #fff; 
+            border-bottom: 4px solid var(--gov-blue);
+            z-index: 2000; 
+            display: flex; 
+            align-items: flex-end; 
             padding: 0 20px 12px 20px;
+            /* Padding top accounts for the safe area/notch */
+            padding-top: var(--safe-top);
         }
         .nav-content { display: flex; align-items: center; width: 100%; gap: 15px; }
         .back-btn { text-decoration: none; color: var(--gov-blue); font-size: 24px; font-weight: bold; }
         .nav-title h1 { font-size: 16px; color: var(--gov-blue); font-weight: 800; }
         .nav-title p { font-size: 10px; color: var(--energy-orange); font-weight: bold; text-transform: uppercase; }
-
-        .dashboard { margin-top: var(--nav-height); padding: 20px; display: grid; grid-template-columns: 1fr; gap: 15px; }
-
-        .sensor-card { background: #fff; border: 1px solid var(--border-color); padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+        .dashboard { 
+            margin-top: var(--nav-height); 
+            padding: 20px; 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 15px; 
+            /* Ensures content doesn't hide behind the bottom home bar on modern phones */
+            padding-bottom: calc(20px + var(--safe-bottom));
+        }
+    
+        .sensor-card { 
+            background: #fff; 
+            border: 1px solid var(--border-color); 
+            padding: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            /* Smooth hardware-accelerated transitions */
+            -webkit-backface-visibility: hidden;
+        }
         .sensor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
         .sensor-name { font-size: 11px; font-weight: 800; color: var(--gov-blue); text-transform: uppercase; }
         .status-dot { width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; }
         .status-dot.active { background: #22c55e; animation: blink 1s infinite; }
-
+    
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
+    
         .value { font-size: 44px; font-weight: 900; color: #111; font-family: monospace; text-align: center; display: block; }
         .unit { font-size: 13px; color: #666; text-align: center; display: block; font-weight: bold; text-transform: uppercase; }
         
-        .inference-box { background: var(--gov-blue); color: #fff; padding: 15px; margin-top: 5px; border-radius: 4px; }
+        .inference-box { 
+            background: var(--gov-blue); 
+            color: #fff; 
+            padding: 15px; 
+            margin-top: 5px; 
+            border-radius: 4px; 
+            /* Prevents content flashing during sensor updates */
+            transform: translateZ(0);
+        }
         .inf-label { font-size: 9px; text-transform: uppercase; opacity: 0.8; font-weight: 800; display: block; margin-bottom: 4px; }
         .inf-text { font-size: 14px; font-weight: 700; }
     </style>

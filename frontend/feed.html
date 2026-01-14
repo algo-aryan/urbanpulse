@@ -10,49 +10,102 @@
             --gov-blue: #003366;
             --energy-orange: #f57c00;
             --bg-gray: #f2f4f7;
-            --safe-top: env(safe-area-inset-top);
+            /* Safe Area variables handle phone notches and status bars */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
             --nav-height: calc(60px + var(--safe-top));
             --border-color: #d1d5db;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body, html { height: 100%; width: 100%; overflow: hidden; background: #fff; }
-
+    
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', -apple-system, Arial, sans-serif;
+            /* Remove tap highlight gray box on mobile links/buttons */
+            -webkit-tap-highlight-color: transparent;
+            /* Prevent standard browser long-press menu on images/text */
+            -webkit-touch-callout: none;
+        }
+    
+        body, html { 
+            height: 100%; 
+            width: 100%; 
+            overflow: hidden; 
+            background: #fff;
+            /* Native App Feel: Disable text selection */
+            -webkit-user-select: none;
+            user-select: none;
+            /* Prevent the browser from "bouncing" or pulling to refresh */
+            overscroll-behavior-y: none;
+        }
+    
+        /* Prevent images from being dragged or saved via long-press */
+        img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+    
         /* --- OFFICIAL NAV --- */
         .official-nav {
-            position: fixed; top: 0; width: 100%; height: var(--nav-height);
-            background: #fff; border-bottom: 4px solid var(--gov-blue);
-            z-index: 2000; display: flex; align-items: flex-end; 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            /* The height auto-adjusts based on the phone's notch */
+            height: var(--nav-height);
+            background: #fff; 
+            border-bottom: 4px solid var(--gov-blue);
+            z-index: 2000; 
+            display: flex; 
+            align-items: flex-end; 
             padding: 0 20px 12px 20px;
         }
         .nav-content { display: flex; align-items: center; width: 100%; gap: 15px; }
         .back-btn { text-decoration: none; color: var(--gov-blue); font-size: 24px; font-weight: bold; }
         .nav-title h1 { font-size: 16px; color: var(--gov-blue); font-weight: 800; }
         .nav-title p { font-size: 10px; color: var(--energy-orange); font-weight: bold; text-transform: uppercase; }
-
+    
         /* --- SCROLLER --- */
         .viewport-snap {
-            height: 100svh; overflow-y: scroll; 
+            /* Use SVH (Small Viewport Height) to ensure it fits mobile screens perfectly */
+            height: 100svh; 
+            overflow-y: scroll; 
             scroll-snap-type: y mandatory;
+            /* Hide scrollbars for clean UI */
             scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
         }
         .viewport-snap::-webkit-scrollbar { display: none; }
-
+    
         .case-section {
-            height: 100svh; width: 100%;
+            height: 100svh; 
+            width: 100%;
             scroll-snap-align: start;
-            display: flex; flex-direction: column;
+            display: flex; 
+            flex-direction: column;
             background: #fff;
         }
-
+    
         .media-container {
-            width: 100%; aspect-ratio: 4 / 3; 
-            background: #000; margin-top: var(--nav-height);
+            width: 100%; 
+            aspect-ratio: 4 / 3; 
+            background: #000; 
+            margin-top: var(--nav-height);
             flex-shrink: 0;
         }
-        .main-img { width: 100%; height: 100%; object-fit: cover; }
+        .main-img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         
-        .report-pane { flex: 1; padding: 15px 20px; display: flex; flex-direction: column; background: #fff; }
+        .report-pane { 
+            flex: 1; 
+            padding: 15px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            background: #fff;
+            /* Add bottom safe area padding for the home bar on modern phones */
+            padding-bottom: calc(15px + var(--safe-bottom));
+        }
         
         .status-badge {
             width: fit-content; padding: 4px 10px; background: #f8f9fa;
@@ -60,7 +113,7 @@
             text-transform: uppercase; margin-bottom: 10px;
             border: 1px solid var(--gov-blue);
         }
-
+    
         .headline { font-size: 18px; font-weight: 800; color: #111; margin-bottom: 12px; }
         
         .audit-table {
@@ -77,21 +130,24 @@
             font-weight: bold; width: 30%; font-size: 9px;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
-
+    
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
         .info-box { background: #f8f9fa; padding: 8px; border: 1px solid #eee; }
         .info-box span { display: block; font-size: 8px; color: #777; text-transform: uppercase; font-weight: bold; }
         .info-box p { font-size: 12px; font-weight: 700; color: var(--gov-blue); }
-
+    
         .action-row { display: flex; gap: 10px; margin-top: 12px; }
         .btn-action {
             flex: 1; height: 48px; background: var(--gov-blue); 
             color: #fff; border: none; font-weight: 800; border-radius: 4px;
             width: 100%; font-size: 11px; text-transform: uppercase;
             display: flex; align-items: center; justify-content: center;
-            text-decoration: none; cursor: pointer;
+            text-decoration: none; cursor: pointer; transition: background 0.2s;
         }
         .btn-share { background: #fff; color: var(--gov-blue); border: 2px solid var(--gov-blue); }
+        
+        /* Ensure buttons don't flash gray on tap */
+        .btn-action:active { opacity: 0.8; }
     </style>
 </head>
 <body>
