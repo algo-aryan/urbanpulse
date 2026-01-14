@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>UrbanPulse | Live Sensor Audit</title>
+    <style>
+        :root {
+            --gov-blue: #003366;
+            --energy-orange: #f57c00;
+            --bg-gray: #f8fafc;
+            --safe-top: env(safe-area-inset-top);
+            --nav-height: calc(60px + var(--safe-top));
+            --border-color: #d1d5db;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body, html { height: 100%; background: var(--bg-gray); overflow-x: hidden; touch-action: manipulation; }
+
+        .official-nav {
+            position: fixed; top: 0; width: 100%; height: var(--nav-height);
+            background: #fff; border-bottom: 4px solid var(--gov-blue);
+            z-index: 2000; display: flex; align-items: flex-end; 
+            padding: 0 20px 12px 20px;
+        }
+        .nav-content { display: flex; align-items: center; width: 100%; gap: 15px; }
+        .back-btn { text-decoration: none; color: var(--gov-blue); font-size: 24px; font-weight: bold; }
+        .nav-title h1 { font-size: 16px; color: var(--gov-blue); font-weight: 800; }
+        .nav-title p { font-size: 10px; color: var(--energy-orange); font-weight: bold; text-transform: uppercase; }
+
+        .dashboard { margin-top: var(--nav-height); padding: 20px; display: grid; grid-template-columns: 1fr; gap: 15px; }
+
+        .sensor-card { background: #fff; border: 1px solid var(--border-color); padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .sensor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .sensor-name { font-size: 11px; font-weight: 800; color: var(--gov-blue); text-transform: uppercase; }
+        .status-dot { width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; }
+        .status-dot.active { background: #22c55e; animation: blink 1s infinite; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .value { font-size: 44px; font-weight: 900; color: #111; font-family: monospace; text-align: center; display: block; }
+        .unit { font-size: 13px; color: #666; text-align: center; display: block; font-weight: bold; text-transform: uppercase; }
+        
+        .inference-box { background: var(--gov-blue); color: #fff; padding: 15px; margin-top: 5px; border-radius: 4px; }
+        .inf-label { font-size: 9px; text-transform: uppercase; opacity: 0.8; font-weight: 800; display: block; margin-bottom: 4px; }
+        .inf-text { font-size: 14px; font-weight: 700; }
+    </style>
+</head>
+<body onclick="activateSensors()">
+
+    <nav class="official-nav">
+        <div class="nav-content">
+            <a href="index.html" class="back-btn">←</a>
+            <div class="nav-title">
+                <h1>Energy Audit Terminal</h1>
+                <p>Digital Field Terminal UP-4402</p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="sensor-card">
+            <div class="sensor-header">
+                <span class="sensor-name">Kinetic (Vibration)</span>
+                <div id="dot-kinetic" class="status-dot active"></div>
+            </div>
+            <span id="val-kinetic" class="value">0.04</span>
+            <span class="unit">m/s² (Structural Movement)</span>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-header">
+                <span class="sensor-name">Acoustic (Sound)</span>
+                <div id="dot-sound" class="status-dot active"></div>
+            </div>
+            <span id="val-sound" class="value">32</span>
+            <span class="unit">dB (Ambient Pressure)</span>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-header">
+                <span class="sensor-name">Thermal (Heat Leak)</span>
+                <div id="dot-thermal" class="status-dot active"></div>
+            </div>
+            <span id="val-thermal" class="value">4.2</span>
+            <span class="unit">°C (Ambient Delta)</span>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-header">
+                <span class="sensor-name">RF Density (Smog)</span>
+                <div id="dot-rf" class="status-dot active"></div>
+            </div>
+            <span id="val-rf" class="value">12</span>
+            <span class="unit">Flux Index (EMI Level)</span>
+        </div>
+
+        <div class="inference-box">
+            <span class="inf-label">AI Field Inference</span>
+            <span id="inf-text" class="inf-text">Scanning environment for urban energy hotspots...</span>
+        </div>
+    </div>
+
+    <script>
+        let currentKinetic = 0.04, currentSound = 32, magneticFlux = 0, lastMagSum = 0;
+        let ambientDiff = 4.2, smogIndex = 12;
+        const DELHI_WINTER_BASELINE = 14.0; 
+        let sensorsActive = false;
+
+        // 1. Initial Fake Data Loop (Runs immediately on load)
+        const fakeDataLoop = setInterval(() => {
+            if (sensorsActive) return;
+            // Provide subtle "living" movement to the values
+            document.getElementById('val-kinetic').innerText = (0.02 + Math.random() * 0.05).toFixed(2);
+            document.getElementById('val-sound').innerText = Math.round(30 + Math.random() * 5);
+            document.getElementById('val-thermal').innerText = (4.0 + Math.random() * 0.5).toFixed(1);
+            document.getElementById('val-rf').innerText = Math.round(10 + Math.random() * 5);
+        }, 1000);
+
+        async function activateSensors() {
+            if (sensorsActive) return;
+            sensorsActive = true;
+            clearInterval(fakeDataLoop);
+
+            // Audio Activation
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 512;
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                const updateSound = () => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                    currentSound = Math.round(30 + (avg / 1.5));
+                    requestAnimationFrame(updateSound);
+                };
+                updateSound();
+            } catch (e) { console.warn("Mic Access Blocked"); }
+
+            // Kinetic Activation
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                const permission = await DeviceMotionEvent.requestPermission();
+                if (permission === 'granted') startKinetic();
+            } else { startKinetic(); }
+
+            // Magnetometer Activation
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                const magPerm = await DeviceOrientationEvent.requestPermission();
+                if (magPerm === 'granted') startMag();
+            } else { startMag(); }
+
+            startUpdateLoop();
+        }
+
+        function startKinetic() {
+            window.addEventListener('devicemotion', (event) => {
+                let acc = event.accelerationIncludingGravity;
+                if (!acc) return;
+                currentKinetic = Math.abs(Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2) - 9.8);
+            });
+        }
+
+        function startMag() {
+            window.addEventListener('deviceorientation', (event) => {
+                let newMagSum = Math.abs(event.alpha || 0) + Math.abs(event.beta || 0) + Math.abs(event.gamma || 0);
+                magneticFlux = Math.abs(newMagSum - lastMagSum);
+                lastMagSum = newMagSum;
+            });
+        }
+
+        async function startUpdateLoop() {
+            let battery = ('getBattery' in navigator) ? await navigator.getBattery() : null;
+
+            setInterval(() => {
+                document.getElementById('val-kinetic').innerText = currentKinetic.toFixed(2);
+                document.getElementById('val-sound').innerText = currentSound > 32 ? currentSound : "00";
+
+                let internalEst = 30 + ((battery?.level || 0.5) * 10); 
+                ambientDiff = Math.abs((internalEst - DELHI_WINTER_BASELINE) / 3 + (Math.random() * 0.5));
+                document.getElementById('val-thermal').innerText = ambientDiff.toFixed(1);
+
+                smogIndex = Math.min(99, Math.round(magneticFlux * 5 + (Math.random() * 2)));
+                document.getElementById('val-rf').innerText = smogIndex;
+
+                runInference(currentKinetic, currentSound, ambientDiff, smogIndex);
+            }, 1000); 
+        }
+
+        function runInference(k, s, t, r) {
+            const inf = document.getElementById('inf-text');
+            if (k > 0.8) inf.innerText = "Heavy vibration detected. Kinetic tiles recommended.";
+            else if (s > 78) inf.innerText = "High noise intensity. Ideal for acoustic harvesting.";
+            else if (r > 45) inf.innerText = "High RF Smog detected. Potential energy recovery site.";
+            else if (t > 8.5) inf.innerText = "Abnormal heat leak found. Waste heat recovery potential.";
+            else inf.innerText = "Ambient levels stable. Analyzing urban energy waste...";
+        }
+    </script>
+</body>
+</html>

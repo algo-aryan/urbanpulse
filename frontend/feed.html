@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>UrbanPulse | Energy Savings Feed</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --gov-blue: #003366;
+            --energy-orange: #f57c00;
+            --bg-gray: #f2f4f7;
+            --safe-top: env(safe-area-inset-top);
+            --nav-height: calc(60px + var(--safe-top));
+            --border-color: #d1d5db;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body, html { height: 100%; width: 100%; overflow: hidden; background: #fff; }
+
+        /* --- OFFICIAL NAV --- */
+        .official-nav {
+            position: fixed; top: 0; width: 100%; height: var(--nav-height);
+            background: #fff; border-bottom: 4px solid var(--gov-blue);
+            z-index: 2000; display: flex; align-items: flex-end; 
+            padding: 0 20px 12px 20px;
+        }
+        .nav-content { display: flex; align-items: center; width: 100%; gap: 15px; }
+        .back-btn { text-decoration: none; color: var(--gov-blue); font-size: 24px; font-weight: bold; }
+        .nav-title h1 { font-size: 16px; color: var(--gov-blue); font-weight: 800; }
+        .nav-title p { font-size: 10px; color: var(--energy-orange); font-weight: bold; text-transform: uppercase; }
+
+        /* --- SCROLLER --- */
+        .viewport-snap {
+            height: 100svh; overflow-y: scroll; 
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .viewport-snap::-webkit-scrollbar { display: none; }
+
+        .case-section {
+            height: 100svh; width: 100%;
+            scroll-snap-align: start;
+            display: flex; flex-direction: column;
+            background: #fff;
+        }
+
+        .media-container {
+            width: 100%; aspect-ratio: 4 / 3; 
+            background: #000; margin-top: var(--nav-height);
+            flex-shrink: 0;
+        }
+        .main-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .report-pane { flex: 1; padding: 15px 20px; display: flex; flex-direction: column; background: #fff; }
+        
+        .status-badge {
+            width: fit-content; padding: 4px 10px; background: #f8f9fa;
+            color: var(--gov-blue); font-weight: 800; font-size: 10px;
+            text-transform: uppercase; margin-bottom: 10px;
+            border: 1px solid var(--gov-blue);
+        }
+
+        .headline { font-size: 18px; font-weight: 800; color: #111; margin-bottom: 12px; }
+        
+        .audit-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .audit-table td {
+            padding: 8px 10px; border: 1px solid var(--border-color);
+            font-size: 12.5px; line-height: 1.4; color: #333;
+            vertical-align: top;
+        }
+        .audit-table td:first-child {
+            background: #f1f5f9; color: var(--gov-blue);
+            font-weight: bold; width: 30%; font-size: 9px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+        .info-box { background: #f8f9fa; padding: 8px; border: 1px solid #eee; }
+        .info-box span { display: block; font-size: 8px; color: #777; text-transform: uppercase; font-weight: bold; }
+        .info-box p { font-size: 12px; font-weight: 700; color: var(--gov-blue); }
+
+        .action-row { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-action {
+            flex: 1; height: 48px; background: var(--gov-blue); 
+            color: #fff; border: none; font-weight: 800; border-radius: 4px;
+            width: 100%; font-size: 11px; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; cursor: pointer;
+        }
+        .btn-share { background: #fff; color: var(--gov-blue); border: 2px solid var(--gov-blue); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar official-nav">
+        <div class="nav-content">
+            <a href="index.html" class="back-btn">←</a>
+            <div class="nav-title">
+                <h1>Energy Savings Feed</h1>
+                <p>Public Awareness Update</p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="viewport-snap">
+        
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-VIB-01</div>
+                <h2 class="headline">IFFCO Chowk Flyover</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Traffic makes the bridge shake constantly, which is wasted energy.</td></tr>
+                    <tr><td>Action</td><td>Special tiles turn these vibrations into electricity for street lights.</td></tr>
+                    <tr><td>Impact</td><td>Better lighting makes the flyover much safer for nighttime drivers.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>8.4 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Powers 3 Meters</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4721,77.0725" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('IFFCO Chowk Flyover', 'Traffic makes bridge shake', 'Special vibration tiles', 'Kinetic', 'Safer nighttime driving', '8.4 mW', 'Powers 3 Meters')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1516937941344-00b4e0337589?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-THE-04</div>
+                <h2 class="headline">Industrial Substation B-4</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Large electricity boxes waste intense heat into the open sky.</td></tr>
+                    <tr><td>Action</td><td>Heat catchers recycle warmth to keep security sensors charged 24/7.</td></tr>
+                    <tr><td>Impact</td><td>Reusing heat reduces battery waste and lowers local carbon footprint.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>22.1 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Charges 12 Sensors</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4800,77.0800" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Industrial Substation B-4', 'Hot boxes waste heat', 'Thermal heat catchers', 'Waste Heat', 'Reduces battery waste', '22.1 mW', 'Charges 12 Sensors')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-AIR-02</div>
+                <h2 class="headline">Metro Ventilation Shaft</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Trains push air through tunnels creating wind that just blows away.</td></tr>
+                    <tr><td>Action</td><td>Small fans over vents catch this wind to power subway lights.</td></tr>
+                    <tr><td>Impact</td><td>Brighter walking paths make the station feel safer for commuters.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>15.7 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Lights Pathways</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4595,77.0726" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Metro Ventilation Shaft', 'Tunnel wind blows away', 'Vent fan harvesters', 'Fluid Airflow', 'Safer commuter paths', '15.7 mW', 'Lights Pathways')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1558449028-b53a39d100fc?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-KIN-07</div>
+                <h2 class="headline">Sector 4 Subway Entry</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Thousands of people walking create pressure that usually goes to waste.</td></tr>
+                    <tr><td>Action</td><td>Smart mats under the floor turn every footstep into usable power.</td></tr>
+                    <tr><td>Impact</td><td>The station generates its own power to keep digital maps glowing.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>12.2 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Powers Station Signs</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4750,77.0700" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Sector 4 Subway Entry', 'Step pressure wasted', 'Kinetic floor mats', 'Kinetic', 'Independent sign power', '12.2 mW', 'Powers Station Signs')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-SOL-11</div>
+                <h2 class="headline">CPWD Warehouse Roof</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Empty warehouse roofs get very hot and heat up the building.</td></tr>
+                    <tr><td>Action</td><td>Solar panels block the sun while making free electricity for workers.</td></tr>
+                    <tr><td>Impact</td><td>Lower indoor temperatures reduce the need for air conditioning.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>34.5 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Saves 40% AC Cost</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4900,77.0900" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('CPWD Warehouse Roof', 'Sun heats empty roofs', 'Rooftop solar panels', 'Solar Gain', 'Reduces AC energy drain', '34.5 mW', 'Saves 40% AC Cost')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-VIB-09</div>
+                <h2 class="headline">Signature Tower Span</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Heavy trucks driving over road joints create thuds that waste energy.</td></tr>
+                    <tr><td>Action</td><td>Road catchers harvest energy from these thuds to power nearby lights.</td></tr>
+                    <tr><td>Impact</td><td>Free lighting for walking paths makes the intersection safer.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>9.1 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Underpass Lights</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4740,77.0580" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Signature Tower Span', 'Truck thuds waste energy', 'Mechanical road catchers', 'Vibration', 'Safer intersection lighting', '9.1 mW', 'Underpass Lights')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-THE-14</div>
+                <h2 class="headline">STPI Data Hub</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Data centers run hot and waste heat through cooling systems.</td></tr>
+                    <tr><td>Action</td><td>Water loops carry server heat to provide warmth for nearby offices.</td></tr>
+                    <tr><td>Impact</td><td>This recycled heat provides free hot water for hundreds of employees.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>45.0 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Free Hot Water</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.5011,77.0705" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('STPI Data Hub', 'Server heat wasted', 'Water loop recovery', 'Waste Heat', 'Free water heating', '45.0 mW', 'Free Hot Water')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1574689232449-39d846ca9f47?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-ACO-03</div>
+                <h2 class="headline">Railway Underpass Tunnel</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Loud train noise is intense energy that usually goes to waste.</td></tr>
+                    <tr><td>Action</td><td>Vibrating mats on walls turn loud noise into electricity for phones.</td></tr>
+                    <tr><td>Impact</td><td>This ensures emergency SOS phones always work for safety.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>2.1 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Powers SOS Hubs</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4715,77.0498" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Railway Underpass Tunnel', 'Train noise wasted', 'Acoustic mats', 'Acoustic', 'Passenger safety power', '2.1 mW', 'Powers SOS Hubs')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1548543604-a87c9909afec?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-KIN-15</div>
+                <h2 class="headline">Civil Hospital Elevator</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>Lifts use lots of power to stop when full of people.</td></tr>
+                    <tr><td>Action</td><td>Special motors turn braking friction into electricity for hallway lights.</td></tr>
+                    <tr><td>Impact</td><td>The hospital saves energy while keeping essential floors lit.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>18.4 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Lights One Floor</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4715,77.0498" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Civil Hospital Elevator', 'Lift braking wasted', 'Regenerative motors', 'Kinetic', 'Essential floor lighting', '18.4 mW', 'Lights One Floor')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-section">
+            <div class="media-container"><img src="https://images.unsplash.com/photo-1590483736622-39da8af75620?auto=format&fit=crop&w=800" class="main-img"></div>
+            <div class="report-pane">
+                <div class="status-badge">Audit: 2026-WAT-22</div>
+                <h2 class="headline">Central Water Hub</h2>
+                <table class="audit-table">
+                    <tr><td>Problem</td><td>High pipe pressure is wasted energy that can cause leaks.</td></tr>
+                    <tr><td>Action</td><td>Tiny wheels in pipes slow water down to make free electricity.</td></tr>
+                    <tr><td>Impact</td><td>This clean power runs park sprinklers for free every evening.</td></tr>
+                </table>
+                <div class="info-grid">
+                    <div class="info-box"><span>mW per Unit</span><p>5.2 mW</p></div>
+                    <div class="info-box"><span>Yield Benefit</span><p>Free Sprinklers</p></div>
+                </div>
+                <div class="action-row">
+                    <a href="https://www.google.com/maps/search/?api=1&query=28.4820,77.0780" target="_blank" class="btn-action">Maps</a>
+                    <button class="btn-action btn-share" onclick="shareAudit('Central Water Hub', 'High pipe pressure wasted', 'In-pipe turbines', 'Hydraulic', 'Free public sprinklers', '5.2 mW', 'Free Sprinklers')">Share Audit</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function shareAudit(location, problem, solution, energy, impact, mw, yield) {
+            const title = "*UrbanPulse Energy Audit Discovery*";
+            const msg = `${title}\n\n*Location:* ${location}\n*Problem:* ${problem}\n*Action:* ${solution}\n*Energy Type:* ${energy}\n*Impact:* ${impact}\n*Efficiency:* ${mw} per unit\n*Benefit:* ${yield}`;
+            
+            const encodedMessage = encodeURIComponent(msg);
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrbanPulse | Energy Audit Discovery</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --gov-blue: #003366;
+            --gov-bg: #f8fafc;
+            --white: #ffffff;
+            --accent-orange: #f57c00;
+            --success-text: #1b5e20;
+            --text-main: #1a202c;
+            --text-sub: #4a5568;
+            --border-standard: #d1d5db;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background-color: var(--gov-bg); color: var(--text-main); }
+
+        /* Navbar with Integrated Toggle */
+        .navbar {
+            background: var(--white);
+            color: var(--gov-blue);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+            border-bottom: 4px solid var(--gov-blue);
+        }
+        
+        .nav-left { display: flex; align-items: center; }
+        .back-btn { font-size: 20px; margin-right: 15px; cursor: pointer; color: var(--gov-blue); text-decoration: none; font-weight: bold; }
+
+        /* Small Curved Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e0;
+            transition: .3s; border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--gov-blue); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Content Areas */
+        #list-view { padding: 20px 16px; }
+        #map-view { display: none; height: calc(100vh - 58px); width: 100%; }
+        #map { height: 100%; width: 100%; }
+
+        /* Audit Cards */
+        .card {
+            background: var(--white);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-standard);
+            position: relative;
+        }
+        .card-img {
+            height: 160px; background-size: cover; background-position: center;
+            position: relative; border-bottom: 1px solid var(--border-standard);
+        }
+        .badge-type {
+            position: absolute; top: 0; left: 0;
+            background: var(--gov-blue); color: white;
+            padding: 6px 12px; font-size: 10px; font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-dist {
+            position: absolute; bottom: 10px; right: 10px;
+            background: rgba(255,255,255,0.9); padding: 4px 8px;
+            font-size: 11px; font-weight: bold; color: var(--gov-blue);
+            border: 1px solid var(--border-standard);
+        }
+        .card-body { padding: 20px; }
+        .verification-status { font-size: 11px; color: var(--success-text); font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .location-title { font-size: 18px; font-weight: bold; margin-bottom: 6px; color: var(--gov-blue); }
+        .source-context { font-size: 13px; color: var(--text-sub); margin-bottom: 18px; }
+        .comparison-box { background: #f1f5f9; border-left: 4px solid var(--gov-blue); padding: 12px; margin-bottom: 18px; }
+        .comp-text { font-size: 13px; color: var(--text-main); line-height: 1.5; }
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; border-top: 1px solid #edf2f7; padding-top: 15px; }
+        .metric-item { font-size: 11px; color: var(--text-sub); text-transform: uppercase; }
+        .metric-item b { display: block; color: var(--text-main); font-size: 14px; margin-top: 2px; text-transform: none; }
+        .nav-btn { display: block; width: 100%; padding: 14px; background: #ffffff; color: var(--gov-blue); border: 1px solid var(--gov-blue); font-weight: bold; text-align: center; text-decoration: none; font-size: 12px; text-transform: uppercase; }
+
+        /* Popup Styling */
+        .custom-popup .leaflet-popup-content-wrapper { border-radius: 4px; padding: 5px; }
+        .popup-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+        .popup-title { font-weight: bold; color: var(--gov-blue); font-size: 14px; margin-right: 10px; }
+        .popup-nav-link { font-size: 18px; text-decoration: none; color: var(--gov-blue); font-weight: bold; }
+        .popup-detail { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="back-btn">←</a>
+            <div>
+                <div style="font-size: 14px; font-weight: bold; letter-spacing: 0.5px;">Urban Energy Audit Portal</div>
+                <div style="font-size: 10px; color: var(--text-sub);">Regional Office: New Delhi (NCT)</div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 10px; font-weight: bold; color: var(--text-sub);"></span>
+            <label class="switch">
+                <input type="checkbox" id="view-checkbox" onchange="toggleView()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </nav>
+
+    <div id="list-view">
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Kinetic / Vibration</span>
+                <span class="badge-dist">0.4 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (86 Audits)</div>
+                <h3 class="location-title">IFFCO Chowk Flyover</h3>
+                <div class="source-context">Registry: Structural Traffic Resonance Analysis</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>8.4 mW</b> per unit. Capacity: 3 LED smart-meters continuously.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Avg. Frequency <b>14.2 Hz</b></div>
+                    <div class="metric-item">Data Confidence <b>94.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4721,77.0725" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1516937941344-00b4e0337589?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Thermal / Waste Heat</span>
+                <span class="badge-dist">1.2 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (14 Audits)</div>
+                <h3 class="location-title">Industrial Substation B-4</h3>
+                <div class="source-context">Registry: Transformer Cooling Exhaust Systems</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>22.1 mW</b> per unit. Capacity: 12 sensor charges / 24h.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Avg. Temp <b>46.8 C</b></div>
+                    <div class="metric-item">Data Confidence <b>82.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4800,77.0800" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Fluid Dynamics / Airflow</span>
+                <span class="badge-dist">2.5 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (42 Audits)</div>
+                <h3 class="location-title">Metro Ventilation Shaft V-2</h3>
+                <div class="source-context">Registry: Forced Draft Exhaust Gradients</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>15.7 mW</b> per unit. Capacity: Constant Node operation.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Velocity <b>4.2 m/s</b></div>
+                    <div class="metric-item">Data Confidence <b>89.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4595,77.0726" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1574689232449-39d846ca9f47?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Acoustic / Noise</span>
+                <span class="badge-dist">0.8 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (29 Audits)</div>
+                <h3 class="location-title">Railway Underpass Tunnel</h3>
+                <div class="source-context">Registry: Ambient Low-Frequency Sound Capture</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>2.1 mW</b> per unit. Capacity: Low-power IoT monitoring.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Peak Intensity <b>92 dB</b></div>
+                    <div class="metric-item">Data Confidence <b>76.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4650,77.0600" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1558449028-b53a39d100fc?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Thermal / Waste Heat</span>
+                <span class="badge-dist">1.5 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (31 Audits)</div>
+                <h3 class="location-title">Sector 29 Data Hub</h3>
+                <div class="source-context">Registry: Server Rack Heat Dissipation Audit</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>45.0 mW</b> per unit. Capacity: Multi-sensor array power.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Avg. Temp <b>52.3 C</b></div>
+                    <div class="metric-item">Data Confidence <b>95.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4680,77.0620" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Thermal / Solar Gain</span>
+                <span class="badge-dist">2.1 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (112 Audits)</div>
+                <h3 class="location-title">Cyber Hub Thermal Zone</h3>
+                <div class="source-context">Registry: High-Albedo Surface Thermal Absorption</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>34.5 mW</b> per unit. Capacity: Grid-tie auxiliary backup.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Area <b>4500 sqm</b></div>
+                    <div class="metric-item">Data Confidence <b>98.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4950,77.0880" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&w=600');">
+                <span class="badge-type">Kinetic / Vibration</span>
+                <span class="badge-dist">0.9 km</span>
+            </div>
+            <div class="card-body">
+                <div class="verification-status">Official Status: Verified (56 Audits)</div>
+                <h3 class="location-title">Signature Tower Kinetic Span</h3>
+                <div class="source-context">Registry: Piezoelectric Step-Load Analysis</div>
+                <div class="comparison-box">
+                    <div class="comp-text">Projected Yield: <b>12.2 mW</b> per unit. Capacity: Emergency pathway lighting.</div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">Footfall <b>800/hr</b></div>
+                    <div class="metric-item">Data Confidence <b>91.0%</b></div>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query=28.4740,77.0580" target="_blank" class="nav-btn">View Geographic Data</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-view">
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+
+        function initMap() {
+            map = L.map('map').setView([28.4721, 77.0725], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            const locations = [
+                { name: "IFFCO Chowk Flyover", coords: [28.4721, 77.0725], status: "Verified", detail: "8.4 mW | 14.2 Hz" },
+                { name: "Industrial Substation B-4", coords: [28.4800, 77.0800], status: "Verified", detail: "22.1 mW | 46.8 C" },
+                { name: "Metro Vent Shaft V-2", coords: [28.4595, 77.0726], status: "Verified", detail: "15.7 mW | 4.2 m/s" },
+                { name: "Railway Underpass", coords: [28.4650, 77.0600], status: "Verified", detail: "2.1 mW | 92 dB" },
+                { name: "Sector 29 Data Hub", coords: [28.4680, 77.0620], status: "Verified", detail: "45.0 mW | 52.3 C" },
+                { name: "Signature Tower Span", coords: [28.4740, 77.0580], status: "Verified", detail: "9.1 mW | 12.8 Hz" }
+            ];
+
+            locations.forEach(loc => {
+                const popupContent = `
+                    <div class="custom-popup">
+                        <div class="popup-header">
+                            <span class="popup-title">${loc.name}</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${loc.coords[0]},${loc.coords[1]}" target="_blank" class="popup-nav-link">↗</a>
+                        </div>
+                        <div class="popup-detail"><b>Status:</b> ${loc.status}</div>
+                        <div class="popup-detail"><b>Yield:</b> ${loc.detail}</div>
+                    </div>
+                `;
+                L.marker(loc.coords).addTo(map).bindPopup(popupContent);
+            });
+        }
+
+        function toggleView() {
+            const checkbox = document.getElementById('view-checkbox');
+            const list = document.getElementById('list-view');
+            const mapView = document.getElementById('map-view');
+
+            if (checkbox.checked) {
+                list.style.display = 'none';
+                mapView.style.display = 'block';
+                if (!map) initMap();
+                setTimeout(() => map.invalidateSize(), 100);
+            } else {
+                list.style.display = 'block';
+                mapView.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

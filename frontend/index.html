@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>UrbanPulse | Citizen Dashboard</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --primary-light: #e6eff8;
+            --bg: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text-main); overflow-x: hidden; padding-bottom: 100px; }
+
+        /* --- Navbar --- */
+        .navbar {
+            background: var(--bg);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            border-bottom: 1px solid var(--border);
+            height: 60px;
+        }
+        .nav-left { display: flex; align-items: center; gap: 10px; }
+        .profile-trigger {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--primary-light); display: flex;
+            align-items: center; justify-content: center; border: 1px solid var(--primary);
+        }
+        .profile-trigger img { width: 20px; height: 20px; }
+        .brand-name { font-size: 16px; font-weight: 800; color: var(--primary); }
+        .points-pill {
+            background: var(--primary); padding: 8px 12px; border-radius: 20px;
+            display: flex; align-items: center; white-space: nowrap;
+        }
+        .points-val { color: #ffffff; font-weight: 700; font-size: 13px; }
+        .points-label { font-size: 11px; color: rgba(255,255,255,0.8); margin-left: 4px; font-weight: 500; }
+
+        /* --- Sidebar Drawer --- */
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; }
+        .drawer { position: fixed; top: 0; left: 0; width: 65%; height: 100%; background: white; z-index: 1001; transform: translateX(-100%); transition: 0.3s ease; padding: 30px 20px; }
+        .drawer.active { transform: translateX(0); }
+        .drawer-menu li { padding: 16px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; font-weight: 500; list-style: none; }
+
+        /* --- Carousel --- */
+        .carousel { margin: 16px; height: 180px; border-radius: 12px; overflow: hidden; position: relative; background: #eee; }
+        .carousel-track { display: flex; height: 100%; transition: 0.5s ease-in-out; }
+        .slide { min-width: 100%; position: relative; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; }
+        .slide-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; }
+        .dots-container { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 5px; }
+        .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; }
+        .dot.active { background: white; width: 15px; border-radius: 10px; }
+
+        /* --- Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .modal { background: white; width: 90%; max-width: 350px; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal h3 { color: var(--primary); margin-bottom: 12px; font-size: 18px; }
+        .modal textarea { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 14px; resize: none; }
+
+        /* --- Activity List --- */
+        .section-title { padding: 15px 16px 5px; font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .item-card { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+        .item-info { flex: 1; }
+        .status-tag { font-size: 9px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 4px; }
+        .item-title { font-size: 14px; font-weight: 600; }
+        .item-desc { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
+        .item-action { text-align: right; margin-left: 10px; }
+        .pts { display: block; font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+
+        .btn { border: none; padding: 8px 14px; font-size: 10px; font-weight: 700; border-radius: 6px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-blue { background: var(--primary); color: #ffffff; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+        .btn:disabled { background: #f3f4f6; color: #9ca3af; border: none; cursor: default; }
+
+        /* --- FAQ Accordion --- */
+        .faq-section { padding: 20px 16px 40px; background: #f9fafb; margin-top: 20px; }
+        .faq-item { background: white; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        .faq-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .faq-header span { font-size: 14px; font-weight: 700; color: var(--primary); padding-right: 10px; }
+        .faq-icon { font-size: 12px; transition: 0.3s; color: var(--primary); }
+        .faq-body { padding: 0 16px; max-height: 0; overflow: hidden; transition: 0.3s ease-out; }
+        .faq-body p { padding-bottom: 16px; font-size: 13px; color: var(--text-sub); line-height: 1.5; }
+        .faq-item.active .faq-body { max-height: 150px; }
+        .faq-item.active .faq-icon { transform: rotate(180deg); }
+
+        /* --- Navigation Dock --- */
+        .floating-dock {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            z-index: 2000;
+            border: 1px solid var(--border);
+        }
+        .dock-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-sub);
+            transition: 0.2s;
+        }
+        .dock-item.active { color: var(--primary); }
+        .dock-icon { width: 22px; height: 22px; margin-bottom: 4px; }
+        .dock-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        
+        /* Central Wallet Button */
+        .onoe-big {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: -35px;
+            box-shadow: 0 8px 20px rgba(0, 51, 102, 0.3);
+            border: 4px solid white;
+        }
+        .onoe-big .dock-label { color: white; margin-top: 2px; }
+        .onoe-big svg { color: white; width: 24px; height: 24px; }
+
+        /* Toast Fix (Hidden by default) */
+        .toast { 
+            position: fixed; 
+            bottom: 100px; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(200px); 
+            background: #333; 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 25px; 
+            font-size: 12px; 
+            z-index: 3000; 
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="drawer-overlay" id="overlay" onclick="toggleDrawer()"></div>
+    <div class="drawer" id="drawer">
+        <div style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;">
+            <h2 style="font-size:18px; color:var(--primary)">Aditya Sharma</h2>
+            <p style="font-size:12px; color:var(--text-sub)">Citizen Auditor (CP Zone)</p>
+        </div>
+        <ul class="drawer-menu">
+            <li>Profile Settings</li>
+            <li>My Activity History</li>
+            <li>About Us</li>
+            <li style="color:red; margin-top:20px;" onclick="location.reload()">Logout</li>
+        </ul>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <h3>Share Your Idea</h3>
+            <textarea id="tip-text" placeholder="Share a way we can save city energy..."></textarea>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-blue" id="modal-submit-btn" style="flex:1" onclick="submitTip()">Submit Idea</button>
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Balance Updated!</div>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="profile-trigger" onclick="toggleDrawer()">
+                <img src="https://img.icons8.com/material-rounded/24/003366/user-male-circle.png" alt="Profile">
+            </div>
+            <span class="brand-name">UrbanPulse</span>
+        </div>
+        <div class="points-pill">
+            <span class="points-val" id="total-points">1420</span>
+            <span class="points-label">POINTS</span>
+        </div>
+    </nav>
+
+    <div class="carousel">
+        <div class="carousel-track" id="track">
+            <div class="slide"><img src="https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800" alt="CP"><div class="slide-overlay"><h3>Central Delhi Hub</h3></div></div>
+            <div class="slide"><img src="https://images.unsplash.com/photo-1570160897040-30430ade2211?w=800" alt="Metro"><div class="slide-overlay"><h3>Metro Energy Mapping</h3></div></div>
+            <div class="slide"><img src="https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=800" alt="Solar"><div class="slide-overlay"><h3>Urban Solar Potential</h3></div></div>
+            <div class="slide"><img src="https://images.unsplash.com/photo-1566933293069-b55c7f326dd4?w=800" alt="Park"><div class="slide-overlay"><h3>Smart Lighting Audits</h3></div></div>
+            <div class="slide"><img src="https://images.unsplash.com/photo-1624314138470-55291d90f58d?w=800" alt="Bridge"><div class="slide-overlay"><h3>Bridge Resonance Testing</h3></div></div>
+        </div>
+        <div class="dots-container" id="dots"></div>
+    </div>
+
+    <h2 class="section-title">Citizen Tasks Near You</h2>
+    <div id="activity-list"></div>
+
+    <div class="faq-section">
+        <h2 class="section-title" style="padding: 0 0 15px 0">Help Center</h2>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-header"><span>How do I earn points?</span><div class="faq-icon">▼</div></div>
+            <div class="faq-body"><p>Visit red-tagged "Unexplored" locations or enjoy a walk through local markets while the app maps energy data in the background.</p></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-header"><span>What is the Wallet for?</span><div class="faq-icon">▼</div></div>
+            <div class="faq-body"><p>The Wallet allows you to withdraw your points as real-world money or digital gift cards. Access it via the central button below.</p></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-header"><span>How to claim points?</span><div class="faq-icon">▼</div></div>
+            <div class="faq-body"><p>Once a task is synced, tap the blue "Collect" button. Your balance will update instantly.</p></div>
+        </div>
+    </div>
+
+    <nav class="floating-dock">
+        <a href="#" class="dock-item active">
+            <svg class="dock-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="dock-label">Home</span>
+        </a>
+        <a href="hotspot.html" class="dock-item">
+            <svg class="dock-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span class="dock-label">Hotspots</span>
+        </a>
+        <a href="wallet.html" class="dock-item onoe-big">
+            <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8z"/></svg>
+            <span class="dock-label">Wallet</span>
+        </a>
+        <a href="sensor.html" class="dock-item">
+            <svg class="dock-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <span class="dock-label">Sensors</span>
+        </a>
+        <a href="feed.html" class="dock-item">
+            <svg class="dock-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 12h-4v2h4v-2zm0-4h-4v2h4v-2zm0-4h-4v2h4V7z"/></svg>
+            <span class="dock-label">News</span>
+        </a>
+    </nav>
+
+    <script>
+        let balance = 1420;
+        
+        // Engaging Background-Sensing Tasks
+        const activities = [
+            { id: 1, title: "Palika Bazaar Shopping", desc: "Spend 10 mins shopping inside. The app maps heat sensors while you browse.", points: 850, type: "Unexplored", status: "earn", lat: 28.6328, lng: 77.2195 },
+            { id: 2, title: "Janpath Snack Stroll", desc: "Enjoy a snack walk at Janpath. Map energy flow as you visit local stalls.", points: 650, type: "Unexplored", status: "earn", lat: 28.6270, lng: 77.2218 },
+            { id: 3, title: "CP Block B Hub", desc: "Area visit verified! Your sensor data is ready to sync with the city grid.", points: 400, type: "Ready", status: "collect" },
+            { id: 4, title: "Hanuman Mandir Area", desc: "Background audit complete. Your points are ready for collection.", points: 300, type: "Ready", status: "collect" },
+            { id: 5, title: "Barakhamba Metro Break", desc: "Grab a quick 2-min coffee near Gate 1 while we map airflow shafts.", points: 150, type: "Common", status: "earn", lat: 28.6305, lng: 77.2272 },
+            { id: 6, title: "Daily Energy Suggestion", desc: "Share a quick tip on saving electricity in your colony.", points: 50, type: "Bonus", status: "submit" }
+        ];
+
+        function toggleDrawer() {
+            document.getElementById('drawer').classList.toggle('active');
+            const overlay = document.getElementById('overlay');
+            overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleFaq(el) { el.classList.toggle('active'); }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function openModal() { document.getElementById('modal-overlay').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        // Logic to prevent collect buttons resetting on tip submit
+        function submitTip() {
+            const text = document.getElementById('tip-text').value;
+            if(!text) return;
+
+            const btn = document.getElementById('modal-submit-btn');
+            btn.innerText = "Syncing...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                balance += 50;
+                document.getElementById('total-points').innerText = balance;
+                const tipTask = activities.find(a => a.status === 'submit');
+                if(tipTask) tipTask.status = 'claimed';
+                closeModal();
+                renderList(); 
+                showToast("+50 Points Added!");
+                btn.innerText = "Submit Idea";
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        function handleCollect(id, pts, btn) {
+            btn.innerText = "Syncing...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                balance += pts;
+                document.getElementById('total-points').innerText = balance;
+                const act = activities.find(a => a.id === id);
+                if(act) act.status = 'claimed';
+                renderList();
+                showToast("Balance Updated!");
+            }, 1800);
+        }
+
+        function renderList() {
+            const list = document.getElementById('activity-list');
+            list.innerHTML = '';
+            activities.sort((a,b) => b.points - a.points).forEach(act => {
+                const isClaimed = act.status === 'claimed';
+                const div = document.createElement('div');
+                div.className = 'item-card';
+
+                let actionButton = '';
+                if(isClaimed) {
+                    actionButton = `<button class="btn" disabled>Claimed</button>`;
+                } else if(act.status === 'submit') {
+                    actionButton = `<button class="btn btn-outline" onclick="openModal()">Submit</button>`;
+                } else if(act.status === 'collect') {
+                    actionButton = `<button class="btn btn-blue" onclick="handleCollect(${act.id}, ${act.points}, this)">Collect</button>`;
+                } else {
+                    // Optimized Direct Android Navigation URL
+                    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${act.lat},${act.lng}`;
+                    actionButton = `<button class="btn btn-outline" onclick="window.open('${navUrl}', '_blank')">Earn</button>`;
+                }
+
+                div.innerHTML = `
+                    <div class="item-info">
+                        <span class="status-tag">${act.type}</span>
+                        <div class="item-title">${act.title}</div>
+                        <div class="item-desc">${act.desc}</div>
+                    </div>
+                    <div class="item-action">
+                        <span class="pts">+${act.points}</span>
+                        ${actionButton}
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+
+        renderList();
+
+        // Carousel dots
+        const dotsCont = document.getElementById('dots');
+        for(let i=0; i<5; i++) {
+            const d = document.createElement('div');
+            d.className = i===0 ? 'dot active' : 'dot';
+            dotsCont.appendChild(d);
+        }
+        let idx = 0;
+        setInterval(() => {
+            idx = (idx + 1) % 5;
+            document.getElementById('track').style.transform = `translateX(-${idx * 100}%)`;
+            Array.from(dotsCont.children).forEach((d, i) => d.className = i === idx ? 'dot active' : 'dot');
+        }, 4500);
+    </script>
+</body>
+</html>
