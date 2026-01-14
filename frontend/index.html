@@ -12,15 +12,60 @@
             --text-main: #111827;
             --text-sub: #6b7280;
             --border: #e5e7eb;
+            /* Safe Area Variables for modern mobile notches and home bars */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text-main); overflow-x: hidden; padding-bottom: 100px; }
-
-        /* --- Navbar --- */
+    
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            /* Remove the gray highlight box when tapping links on mobile */
+            -webkit-tap-highlight-color: transparent; 
+            /* Disable the context menu (save image, etc.) on long press */
+            -webkit-touch-callout: none;
+        }
+    
+        html, body { 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            /* Prevent the screen from wobbling horizontally */
+            overflow-x: hidden; 
+            /* Stop the "rubber-band" bounce effect when scrolling past the top/bottom */
+            overscroll-behavior-y: none; 
+            /* Disable text selection to make it feel like a compiled app */
+            -webkit-user-select: none;
+            user-select: none;
+            /* Hardware acceleration for smoother scrolling */
+            -webkit-overflow-scrolling: touch;
+            height: 100%;
+        }
+    
+        /* Re-enable selection for inputs so users can type their ideas */
+        textarea, input {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+    
+        /* Hide scrollbars globally while maintaining scrolling functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    
+        /* Prevent images from being dragged or saved via long-press */
+        img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+    
+        /* --- Navbar (Notch-Aware) --- */
         .navbar {
             background: var(--bg);
-            padding: 10px 16px;
+            /* Padding adds space for the phone's status bar/notch */
+            padding: calc(10px + var(--safe-top)) 16px 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -28,7 +73,8 @@
             top: 0;
             z-index: 900;
             border-bottom: 1px solid var(--border);
-            height: 60px;
+            /* Dynamic height that grows based on the safe area */
+            height: calc(60px + var(--safe-top));
         }
         .nav-left { display: flex; align-items: center; gap: 10px; }
         .profile-trigger {
@@ -44,13 +90,24 @@
         }
         .points-val { color: #ffffff; font-weight: 700; font-size: 13px; }
         .points-label { font-size: 11px; color: rgba(255,255,255,0.8); margin-left: 4px; font-weight: 500; }
-
-        /* --- Sidebar Drawer --- */
+    
+        /* --- Sidebar Drawer (Notch-Aware) --- */
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; }
-        .drawer { position: fixed; top: 0; left: 0; width: 65%; height: 100%; background: white; z-index: 1001; transform: translateX(-100%); transition: 0.3s ease; padding: 30px 20px; }
+        .drawer { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 65%; 
+            height: 100%; 
+            background: white; 
+            z-index: 1001; 
+            transform: translateX(-100%); 
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            padding: calc(30px + var(--safe-top)) 20px 20px; 
+        }
         .drawer.active { transform: translateX(0); }
         .drawer-menu li { padding: 16px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; font-weight: 500; list-style: none; }
-
+    
         /* --- Carousel --- */
         .carousel { margin: 16px; height: 180px; border-radius: 12px; overflow: hidden; position: relative; background: #eee; }
         .carousel-track { display: flex; height: 100%; transition: 0.5s ease-in-out; }
@@ -60,13 +117,13 @@
         .dots-container { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 5px; }
         .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; }
         .dot.active { background: white; width: 15px; border-radius: 10px; }
-
+    
         /* --- Modal --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; }
         .modal { background: white; width: 90%; max-width: 350px; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .modal h3 { color: var(--primary); margin-bottom: 12px; font-size: 18px; }
-        .modal textarea { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 14px; resize: none; }
-
+        .modal textarea { width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 14px; resize: none; outline: none; }
+    
         /* --- Activity List --- */
         .section-title { padding: 15px 16px 5px; font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
         .item-card { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
@@ -76,12 +133,12 @@
         .item-desc { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
         .item-action { text-align: right; margin-left: 10px; }
         .pts { display: block; font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
-
+    
         .btn { border: none; padding: 8px 14px; font-size: 10px; font-weight: 700; border-radius: 6px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
         .btn-blue { background: var(--primary); color: #ffffff; }
         .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
         .btn:disabled { background: #f3f4f6; color: #9ca3af; border: none; cursor: default; }
-
+    
         /* --- FAQ Accordion --- */
         .faq-section { padding: 20px 16px 40px; background: #f9fafb; margin-top: 20px; }
         .faq-item { background: white; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
@@ -92,17 +149,19 @@
         .faq-body p { padding-bottom: 16px; font-size: 13px; color: var(--text-sub); line-height: 1.5; }
         .faq-item.active .faq-body { max-height: 150px; }
         .faq-item.active .faq-icon { transform: rotate(180deg); }
-
-        /* --- Navigation Dock --- */
+    
+        /* --- Navigation Dock (Home-Bar Aware) --- */
         .floating-dock {
             position: fixed;
-            bottom: 20px;
+            /* Positioned above the bottom safe area/home bar */
+            bottom: calc(20px + var(--safe-bottom));
             left: 50%;
             transform: translateX(-50%);
             width: 92%;
             height: 70px;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 40px;
             display: flex;
             align-items: center;
@@ -112,6 +171,12 @@
             z-index: 2000;
             border: 1px solid var(--border);
         }
+        
+        /* Body padding ensures content isn't hidden by the dock or bottom home bar */
+        body {
+            padding-bottom: calc(110px + var(--safe-bottom));
+        }
+    
         .dock-item {
             display: flex;
             flex-direction: column;
@@ -124,7 +189,6 @@
         .dock-icon { width: 22px; height: 22px; margin-bottom: 4px; }
         .dock-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
         
-        /* Central Wallet Button */
         .onoe-big {
             width: 70px;
             height: 70px;
@@ -140,11 +204,10 @@
         }
         .onoe-big .dock-label { color: white; margin-top: 2px; }
         .onoe-big svg { color: white; width: 24px; height: 24px; }
-
-        /* Toast Fix (Hidden by default) */
+    
         .toast { 
             position: fixed; 
-            bottom: 100px; 
+            bottom: calc(100px + var(--safe-bottom)); 
             left: 50%; 
             transform: translateX(-50%) translateY(200px); 
             background: #333; 
@@ -153,7 +216,7 @@
             border-radius: 25px; 
             font-size: 12px; 
             z-index: 3000; 
-            transition: transform 0.4s ease, opacity 0.4s ease;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
             opacity: 0;
             pointer-events: none;
         }
